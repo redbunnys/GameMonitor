@@ -52,7 +52,7 @@ func main() {
 			fmt.Printf("   ❌ OFFLINE - Version: %s\n", status.Version)
 		}
 
-		fmt.Printf("   ⏱️  Total probe time: %v\n\n", duration.Round(time.Millisecond))
+		fmt.Printf("   ⏱️  Total probe time: %v\n", duration.Round(time.Millisecond))
 	}
 
 	// Test concurrent probing
