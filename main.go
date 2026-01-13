@@ -10,6 +10,7 @@ import (
 	"game-server-monitor/internal/auth"
 	"game-server-monitor/internal/database"
 	"game-server-monitor/internal/handlers"
+	"game-server-monitor/internal/prober"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,21 +24,32 @@ func main() {
 		log.Fatal("Failed to initialize database:", err)
 	}
 
+	// Initialize database service
+	dbService := database.NewDatabaseService()
+
+	// Initialize prober service
+	proberService := prober.NewProberService(dbService)
+	if err := proberService.Start(); err != nil {
+		log.Fatal("Failed to start prober service:", err)
+	}
+	defer proberService.Stop()
+
 	// Initialize Gin router
 	r := gin.Default()
 
 	// Setup routes
-	setupRoutes(r)
+	setupRoutes(r, proberService)
 
 	// Start server
 	log.Println("🚀 Starting game server monitor on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
-func setupRoutes(r *gin.Engine) {
+func setupRoutes(r *gin.Engine, proberService *prober.ProberService) {
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler()
 	adminHandler := handlers.NewAdminHandler()
+	serverHandler := handlers.NewServerHandler(proberService)
 
 	// Initialize JWT service
 	jwtService := auth.NewJWTService()
@@ -45,13 +57,9 @@ func setupRoutes(r *gin.Engine) {
 	// API routes
 	api := r.Group("/api")
 	{
-		// Public endpoints
-		api.GET("/servers", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "Server list endpoint - will be implemented in task 6",
-				"servers": []interface{}{},
-			})
-		})
+		// Public endpoints - Server status endpoints
+		api.GET("/servers", serverHandler.GetServers)
+		api.GET("/servers/:id", serverHandler.GetServerByID)
 
 		// Auth endpoints
 		auth := api.Group("/auth")
@@ -72,16 +80,10 @@ func setupRoutes(r *gin.Engine) {
 		admin := api.Group("/admin")
 		admin.Use(jwtService.RequireAuth())
 		{
-			// Server management (will be implemented in task 6)
-			admin.POST("/servers", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Add server endpoint - will be implemented in task 6"})
-			})
-			admin.PUT("/servers/:id", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Update server endpoint - will be implemented in task 6"})
-			})
-			admin.DELETE("/servers/:id", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Delete server endpoint - will be implemented in task 6"})
-			})
+			// Server management
+			admin.POST("/servers", serverHandler.CreateServer)
+			admin.PUT("/servers/:id", serverHandler.UpdateServer)
+			admin.DELETE("/servers/:id", serverHandler.DeleteServer)
 
 			// User management
 			admin.POST("/users", adminHandler.CreateUser)
@@ -110,8 +112,11 @@ func setupStaticRoutes(r *gin.Engine) {
 		return
 	}
 
-	// Serve static assets
+	// Serve static assets (CSS, JS, images, etc.)
 	r.StaticFS("/assets", http.FS(staticFS))
+
+	// Also serve common static file paths
+	r.StaticFS("/static", http.FS(staticFS))
 
 	// SPA fallback - serve index.html for all non-API routes
 	r.NoRoute(func(c *gin.Context) {
@@ -123,14 +128,28 @@ func setupStaticRoutes(r *gin.Engine) {
 			return
 		}
 
-		// Try to serve the requested file
-		if file, err := staticFS.Open(strings.TrimPrefix(path, "/")); err == nil {
-			file.Close()
-			c.FileFromFS(path, http.FS(staticFS))
+		// Handle common static file extensions directly
+		if strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") ||
+			strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg") ||
+			strings.HasSuffix(path, ".jpeg") || strings.HasSuffix(path, ".gif") ||
+			strings.HasSuffix(path, ".svg") || strings.HasSuffix(path, ".ico") ||
+			strings.HasSuffix(path, ".woff") || strings.HasSuffix(path, ".woff2") ||
+			strings.HasSuffix(path, ".ttf") || strings.HasSuffix(path, ".eot") {
+
+			// Try to serve the requested file
+			filePath := strings.TrimPrefix(path, "/")
+			if file, err := staticFS.Open(filePath); err == nil {
+				file.Close()
+				c.FileFromFS(path, http.FS(staticFS))
+				return
+			}
+
+			// If static file not found, return 404
+			c.JSON(404, gin.H{"error": "Static file not found"})
 			return
 		}
 
-		// Fallback to index.html for SPA routing
+		// For all other routes (SPA routes), serve index.html
 		indexHTML, err := fs.ReadFile(staticFS, "index.html")
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Could not serve frontend"})
