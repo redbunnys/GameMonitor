@@ -56,9 +56,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Return successful login response
-	c.JSON(http.StatusOK, models.LoginResponse{
-		Token:     token,
-		ExpiresAt: expiresAt,
+	c.JSON(http.StatusOK, gin.H{
+		"data": models.LoginResponse{
+			Token:     token,
+			ExpiresAt: expiresAt,
+		},
 	})
 }
 

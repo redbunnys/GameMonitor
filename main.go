@@ -81,6 +81,7 @@ func setupRoutes(r *gin.Engine, proberService *prober.ProberService) {
 		admin.Use(jwtService.RequireAuth())
 		{
 			// Server management
+			admin.GET("/servers", serverHandler.GetAdminServers)
 			admin.POST("/servers", serverHandler.CreateServer)
 			admin.PUT("/servers/:id", serverHandler.UpdateServer)
 			admin.DELETE("/servers/:id", serverHandler.DeleteServer)

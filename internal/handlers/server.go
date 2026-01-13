@@ -39,7 +39,9 @@ func (h *ServerHandler) GetServers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, serverList)
+	c.JSON(http.StatusOK, gin.H{
+		"data": serverList,
+	})
 }
 
 // GetServerByID returns a specific server with its current status
@@ -66,10 +68,40 @@ func (h *ServerHandler) GetServerByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, serverWithStatus)
+	c.JSON(http.StatusOK, gin.H{
+		"data": serverWithStatus,
+	})
 }
 
 // Management endpoints (require authentication)
+
+// GetAdminServers returns all servers for admin management (without status)
+// GET /api/admin/servers
+func (h *ServerHandler) GetAdminServers(c *gin.Context) {
+	// Verify admin is authenticated
+	_, _, err := auth.GetUserFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Unauthorized",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Get all servers from database (without status for admin management)
+	servers, err := h.dbService.GetAllServers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to retrieve servers",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": servers,
+	})
+}
 
 // CreateServer creates a new server configuration
 // POST /api/admin/servers
@@ -104,8 +136,8 @@ func (h *ServerHandler) CreateServer(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
+		"data":    server,
 		"message": "Server created successfully",
-		"server":  server,
 	})
 }
 
@@ -153,8 +185,8 @@ func (h *ServerHandler) UpdateServer(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"data":    server,
 		"message": "Server updated successfully",
-		"server":  server,
 	})
 }
 
