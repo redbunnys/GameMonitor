@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useAdminStore } from '../stores/adminStore'
+import ChangePasswordModal from '../components/ChangePasswordModal'
 import type { Server } from '../types'
 
 const AdminDashboard: React.FC = () => {
@@ -17,6 +18,7 @@ const AdminDashboard: React.FC = () => {
   
   const navigate = useNavigate()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [showChangePassword, setShowChangePassword] = useState(false)
 
   useEffect(() => {
     fetchAdminServers()
@@ -25,6 +27,11 @@ const AdminDashboard: React.FC = () => {
   const handleLogout = () => {
     logout()
     navigate('/admin/login')
+  }
+
+  const handlePasswordChangeSuccess = () => {
+    // 可以显示成功消息或者强制重新登录
+    alert('密码修改成功！')
   }
 
   const handleDeleteServer = async (server: Server) => {
@@ -80,6 +87,12 @@ const AdminDashboard: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-slate-700">欢迎, {username}</span>
+            <button
+              onClick={() => setShowChangePassword(true)}
+              className="text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              修改密码
+            </button>
             <Link
               to="/"
               className="text-slate-600 hover:text-slate-800 transition-colors"
@@ -278,6 +291,13 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        onSuccess={handlePasswordChangeSuccess}
+      />
     </div>
   )
 }

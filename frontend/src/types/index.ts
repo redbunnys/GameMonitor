@@ -46,6 +46,13 @@ export interface LoginResponse {
   expires_at: string
 }
 
+// 修改密码相关类型
+export interface ChangePasswordRequest {
+  current_password: string
+  new_password: string
+  confirm_password: string
+}
+
 // 服务器配置请求类型
 export interface CreateServerRequest {
   name: string

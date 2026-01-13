@@ -6,7 +6,8 @@ import type {
   LoginResponse,
   Server,
   CreateServerRequest,
-  UpdateServerRequest
+  UpdateServerRequest,
+  ChangePasswordRequest
 } from '../types'
 
 class ApiClient {
@@ -129,6 +130,14 @@ class ApiClient {
       return response.data.data
     } catch (error) {
       throw this.handleError(error, 'Login failed')
+    }
+  }
+
+  async changePassword(passwordData: ChangePasswordRequest): Promise<void> {
+    try {
+      await this.client.post<ApiResponse<void>>('/auth/change-password', passwordData)
+    } catch (error) {
+      throw this.handleError(error, 'Failed to change password')
     }
   }
 
