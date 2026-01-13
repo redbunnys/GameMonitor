@@ -31,13 +31,13 @@
     - **Property 15: 数据库操作一致性**
     - **Validates: Requirements 5.1, 5.3, 5.4**
 
-- [ ] 3. 实现服务器协议探测器
-  - [ ] 3.1 实现 Minecraft 协议探测
+- [x] 3. 实现服务器协议探测器
+  - [x] 3.1 实现 Minecraft 协议探测
     - 集成 mcutils 库实现 Minecraft Query
     - 解析服务器状态、玩家数量、版本信息
     - _Requirements: 3.1, 3.3_
 
-  - [ ] 3.2 实现 CS2/Source Query 协议探测
+  - [x] 3.2 实现 CS2/Source Query 协议探测
     - 集成 go-a2s 库实现 Source Query
     - 解析 CS2 服务器状态和玩家信息
     - _Requirements: 3.2, 3.3_
@@ -46,7 +46,7 @@
     - **Property 8: 协议探测正确性**
     - **Validates: Requirements 3.1, 3.2, 3.3**
 
-  - [ ] 3.4 实现探测器错误处理和离线检测
+  - [x] 3.4 实现探测器错误处理和离线检测
     - 处理网络超时和连接失败
     - 实现重试机制和离线状态标记
     - _Requirements: 3.4_
