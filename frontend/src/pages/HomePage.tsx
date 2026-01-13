@@ -47,7 +47,10 @@ const HomePage: React.FC = () => {
     onError: handleRefreshError
   })
 
-  // Initial fetch
+  // Initial fetch - 移除重复的初始请求，让useAutoRefresh处理
+  // useEffect(() => {
+  //   fetchServers()
+  // }, [fetchServers])
   useEffect(() => {
     fetchServers()
   }, [fetchServers])

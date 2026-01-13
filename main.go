@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"game-server-monitor/internal/auth"
 	"game-server-monitor/internal/database"
 	"game-server-monitor/internal/handlers"
+	"game-server-monitor/internal/middleware"
 	"game-server-monitor/internal/prober"
 
 	"github.com/gin-gonic/gin"
@@ -57,6 +59,9 @@ func setupRoutes(r *gin.Engine, proberService *prober.ProberService) {
 	// API routes
 	api := r.Group("/api")
 	{
+		// 应用速率限制：每个IP每10秒最多20个请求
+		api.Use(middleware.RateLimitMiddleware(20, 10*time.Second))
+
 		// Public endpoints - Server status endpoints
 		api.GET("/servers", serverHandler.GetServers)
 		api.GET("/servers/:id", serverHandler.GetServerByID)

@@ -46,9 +46,12 @@ export const useAutoRefresh = ({
     }
   }, [nextRefresh])
 
-  // Refresh function with error handling
+  // Refresh function with error handling and debouncing
   const refreshNow = useCallback(async () => {
-    if (isRefreshingRef.current) return
+    if (isRefreshingRef.current) {
+      console.log('Refresh already in progress, skipping...')
+      return
+    }
     
     isRefreshingRef.current = true
     const refreshTime = new Date()
@@ -62,6 +65,7 @@ export const useAutoRefresh = ({
         setNextRefresh(next)
       }
     } catch (error) {
+      console.error('Auto-refresh failed:', error)
       if (onError) {
         onError(error instanceof Error ? error : new Error('Refresh failed'))
       }

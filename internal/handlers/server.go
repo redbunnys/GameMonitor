@@ -30,7 +30,7 @@ func NewServerHandler(proberService *prober.ProberService) *ServerHandler {
 // GET /api/servers
 func (h *ServerHandler) GetServers(c *gin.Context) {
 	// Get all servers with their cached status from prober service
-	serverList, err := h.proberService.GetAllServersWithStatus()
+	serverListResponse, err := h.proberService.GetAllServersWithStatus()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Failed to retrieve servers",
@@ -39,8 +39,9 @@ func (h *ServerHandler) GetServers(c *gin.Context) {
 		return
 	}
 
+	// Return just the servers array, not the wrapper
 	c.JSON(http.StatusOK, gin.H{
-		"data": serverList,
+		"data": serverListResponse.Servers,
 	})
 }
 
