@@ -115,14 +115,14 @@
   - 验证认证系统和缓存机制
   - 如有问题请询问用户
 
-- [ ] 8. 实现前端状态管理
-  - [ ] 8.1 创建 Zustand 状态存储
+- [x] 8. 实现前端状态管理
+  - [x] 8.1 创建 Zustand 状态存储
     - 实现 ServerStore 管理服务器数据
     - 实现 AuthStore 管理认证状态
     - 实现 AdminStore 管理后台操作
     - _Requirements: 1.1, 4.1_
 
-  - [ ] 8.2 实现 API 客户端服务
+  - [x] 8.2 实现 API 客户端服务
     - 创建 Axios 配置和请求拦截器
     - 实现自动 token 刷新和错误处理
     - _Requirements: 1.1, 4.4_
