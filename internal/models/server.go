@@ -43,3 +43,43 @@ type ServerStatusResponse struct {
 	Server
 	Status ServerStatus `json:"status"`
 }
+
+// ServerListResponse represents the response for server list API
+type ServerListResponse struct {
+	Servers []ServerStatusResponse `json:"servers"`
+	Total   int                    `json:"total"`
+}
+
+// CreateServerRequest represents the request to create a new server
+type CreateServerRequest struct {
+	Name        string `json:"name" binding:"required"`
+	Type        string `json:"type" binding:"required,oneof=minecraft cs2"`
+	Address     string `json:"address" binding:"required"`
+	Port        int    `json:"port" binding:"required,min=1,max=65535"`
+	Description string `json:"description"`
+	DownloadURL string `json:"download_url"`
+	Changelog   string `json:"changelog"`
+}
+
+// UpdateServerRequest represents the request to update a server
+type UpdateServerRequest struct {
+	Name        string `json:"name" binding:"required"`
+	Type        string `json:"type" binding:"required,oneof=minecraft cs2"`
+	Address     string `json:"address" binding:"required"`
+	Port        int    `json:"port" binding:"required,min=1,max=65535"`
+	Description string `json:"description"`
+	DownloadURL string `json:"download_url"`
+	Changelog   string `json:"changelog"`
+}
+
+// LoginRequest represents the login request
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// LoginResponse represents the login response
+type LoginResponse struct {
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
