@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useServerStore } from '../stores/serverStore'
+import { useAutoRefresh } from '../hooks/useAutoRefresh'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { ServerStatusIndicator, PlayerCountBar, PingIndicator } from './index'
 import type { ServerWithStatus } from '../types'
 
@@ -9,8 +11,39 @@ const ServerDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { getServerById, fetchServers, loading, error } = useServerStore()
+  const { isOnline } = useNetworkStatus()
   const [server, setServer] = useState<ServerWithStatus | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [refreshError, setRefreshError] = useState<string | null>(null)
+
+  // Auto-refresh functionality
+  const handleRefresh = useCallback(async () => {
+    setRefreshError(null)
+    if (isOnline && server) {
+      await fetchServers()
+      const updatedServer = getServerById(server.id)
+      if (updatedServer) {
+        setServer(updatedServer)
+      }
+    }
+  }, [fetchServers, getServerById, server, isOnline])
+
+  const handleRefreshError = useCallback((error: Error) => {
+    setRefreshError(error.message)
+  }, [])
+
+  const {
+    isEnabled: autoRefreshEnabled,
+    lastRefresh,
+    timeUntilNextRefresh,
+    toggle: toggleAutoRefresh,
+    refreshNow
+  } = useAutoRefresh({
+    interval: 30000, // 30 seconds
+    enabled: true,
+    onRefresh: handleRefresh,
+    onError: handleRefreshError
+  })
 
   useEffect(() => {
     const loadServer = async () => {
@@ -45,20 +78,17 @@ const ServerDetailsPage: React.FC = () => {
     loadServer()
   }, [id, getServerById, fetchServers])
 
-  // Auto-refresh server data every 30 seconds
-  useEffect(() => {
-    if (!server) return
+  // Manual refresh handler
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshError(null)
+    await refreshNow()
+  }, [refreshNow])
 
-    const interval = setInterval(async () => {
-      await fetchServers()
-      const updatedServer = getServerById(server.id)
-      if (updatedServer) {
-        setServer(updatedServer)
-      }
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [server, fetchServers, getServerById])
+  // Format time until next refresh
+  const formatTimeUntilRefresh = (ms: number): string => {
+    const seconds = Math.ceil(ms / 1000)
+    return `${seconds}秒`
+  }
 
   if (loading && !server) {
     return (
@@ -89,13 +119,13 @@ const ServerDetailsPage: React.FC = () => {
     )
   }
 
-  if (error) {
+  if (error || refreshError) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl text-red-400 mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">加载失败</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <p className="text-gray-600 mb-6">{error || refreshError}</p>
           <button 
             onClick={() => window.location.reload()}
             className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -140,17 +170,64 @@ const ServerDetailsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header with back button */}
+        {/* Header with back button and refresh controls */}
         <div className="mb-6">
-          <Link 
-            to="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors mb-4"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            返回服务器列表
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+            <Link 
+              to="/"
+              className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              返回服务器列表
+            </Link>
+
+            {/* Refresh controls */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleManualRefresh}
+                disabled={loading || !isOnline}
+                className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <svg 
+                  className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                  />
+                </svg>
+                <span>{loading ? '刷新中' : '刷新'}</span>
+              </button>
+
+              <button
+                onClick={toggleAutoRefresh}
+                disabled={!isOnline}
+                className={`flex items-center space-x-2 px-3 py-1 text-sm rounded-lg transition-colors ${
+                  autoRefreshEnabled && isOnline
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                } disabled:opacity-50`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${
+                  autoRefreshEnabled && isOnline ? 'bg-white animate-pulse' : 'bg-gray-600'
+                }`} />
+                <span>自动刷新</span>
+              </button>
+
+              {autoRefreshEnabled && isOnline && (
+                <div className="text-xs text-gray-500">
+                  {formatTimeUntilRefresh(timeUntilNextRefresh)}后刷新
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Main server info card */}
@@ -174,7 +251,7 @@ const ServerDetailsPage: React.FC = () => {
               <div className="text-right">
                 <ServerStatusIndicator status={status} size="lg" showText />
                 <div className="mt-2 text-sm opacity-90">
-                  {formatLastUpdated(status.last_updated)}
+                  {lastRefresh ? lastRefresh.toLocaleString('zh-CN') : formatLastUpdated(status.last_updated)}
                 </div>
               </div>
             </div>
@@ -282,19 +359,14 @@ const ServerDetailsPage: React.FC = () => {
         {/* Footer with additional actions */}
         <div className="mt-8 text-center">
           <button
-            onClick={() => {
-              fetchServers()
-              const updatedServer = getServerById(server.id)
-              if (updatedServer) {
-                setServer(updatedServer)
-              }
-            }}
-            className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mr-4"
+            onClick={handleManualRefresh}
+            disabled={loading || !isOnline}
+            className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors mr-4"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            刷新状态
+            {loading ? '刷新中...' : '刷新状态'}
           </button>
           
           <button
