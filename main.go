@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"strings"
 
+	"game-server-monitor/internal/auth"
 	"game-server-monitor/internal/database"
+	"game-server-monitor/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +35,13 @@ func main() {
 }
 
 func setupRoutes(r *gin.Engine) {
+	// Initialize handlers
+	authHandler := handlers.NewAuthHandler()
+	adminHandler := handlers.NewAdminHandler()
+
+	// Initialize JWT service
+	jwtService := auth.NewJWTService()
+
 	// API routes
 	api := r.Group("/api")
 	{
@@ -47,17 +56,38 @@ func setupRoutes(r *gin.Engine) {
 		// Auth endpoints
 		auth := api.Group("/auth")
 		{
-			auth.POST("/login", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Login endpoint - will be implemented in task 5"})
-			})
+			auth.POST("/login", authHandler.Login)
+
+			// Protected auth endpoints (require valid JWT)
+			authProtected := auth.Group("")
+			authProtected.Use(jwtService.RequireAuth())
+			{
+				authProtected.GET("/profile", authHandler.GetProfile)
+				authProtected.POST("/change-password", authHandler.ChangePassword)
+				authProtected.POST("/validate", authHandler.ValidateToken)
+			}
 		}
 
-		// Admin endpoints (will require JWT in task 5)
+		// Admin endpoints (require JWT authentication)
 		admin := api.Group("/admin")
+		admin.Use(jwtService.RequireAuth())
 		{
+			// Server management (will be implemented in task 6)
 			admin.POST("/servers", func(c *gin.Context) {
 				c.JSON(200, gin.H{"message": "Add server endpoint - will be implemented in task 6"})
 			})
+			admin.PUT("/servers/:id", func(c *gin.Context) {
+				c.JSON(200, gin.H{"message": "Update server endpoint - will be implemented in task 6"})
+			})
+			admin.DELETE("/servers/:id", func(c *gin.Context) {
+				c.JSON(200, gin.H{"message": "Delete server endpoint - will be implemented in task 6"})
+			})
+
+			// User management
+			admin.POST("/users", adminHandler.CreateUser)
+			admin.GET("/users", adminHandler.GetUsers)
+			admin.DELETE("/users/:id", adminHandler.DeleteUser)
+			admin.POST("/users/:id/reset-password", adminHandler.ResetUserPassword)
 		}
 	}
 
