@@ -156,5 +156,39 @@ export const useServerStore = create<ServerStore>((set, get) => ({
   getServerById: (id) => {
     const { servers } = get()
     return servers.find(server => server.id === id)
+  },
+
+  updateServer: async (id: number, updatedData: Partial<ServerWithStatus>) => {
+    const { servers } = get()
+    const updatedServers = servers.map(server => 
+      server.id === id ? { ...server, ...updatedData } : server
+    )
+    set({ servers: updatedServers })
+  },
+
+  addServer: (serverData: Partial<ServerWithStatus>) => {
+    const { servers } = get()
+    const newServer: ServerWithStatus = {
+      id: Date.now(), // 临时ID，实际应该由后端生成
+      name: serverData.name || '',
+      type: serverData.type || 'minecraft',
+      address: serverData.address || '',
+      port: serverData.port || 25565,
+      description: serverData.description || '',
+      download_url: '',
+      changelog: '',
+      version: serverData.version || '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      status: {
+        online: false,
+        players: 0,
+        max_players: 0,
+        version: '',
+        ping: 0,
+        last_updated: new Date().toISOString()
+      }
+    }
+    set({ servers: [...servers, newServer] })
   }
 }))
