@@ -1,116 +1,322 @@
-# 游戏服务器监控面板
+# Game Server Monitor
 
-一个现代化的 Web 应用程序，用于实时监控 Minecraft 和 CS2 游戏服务器状态。
+[中文文档](README_CN.md) | English
 
-## 技术栈
+A modern web application for real-time monitoring of Minecraft and CS2 game server status.
 
-### 后端
-- **Go 1.21+** - 高性能系统语言
-- **Gin Framework** - 轻量级 HTTP Web 框架
-- **GORM + SQLite** - ORM 和嵌入式数据库
-- **JWT** - 身份认证
-- **协议库**:
-  - `github.com/xrjr/mcutils` - Minecraft 协议
-  - `github.com/rumblefrog/go-a2s` - Source Query 协议
+## Features
 
-### 前端
-- **React 18** - 用户界面库
-- **TypeScript** - 类型安全
-- **Tailwind CSS v4** - CSS 框架
-- **Zustand** - 状态管理
-- **React Router** - 路由管理
-- **Axios** - HTTP 客户端
-- **Vite** - 构建工具
+- 🎮 **Multi-Protocol Support** - Monitor Minecraft and CS2 servers
+- 📊 **Real-time Monitoring** - Live server status updates with automatic probing
+- 🎨 **Modern UI** - Beautiful slate-themed interface with responsive design
+- 🔐 **Secure Admin Panel** - JWT-based authentication with password management
+- 📝 **Markdown Support** - Rich server descriptions with Markdown formatting
+- 🚀 **Single Binary Deployment** - Frontend embedded in Go binary for easy deployment
+- ⚡ **High Performance** - Built with Go and React for optimal performance
+- 🔄 **Auto-refresh** - Configurable automatic status updates
 
-## 项目结构
+## Tech Stack
+
+### Backend
+- **Go 1.21+** - High-performance system language
+- **Gin Framework** - Lightweight HTTP web framework
+- **GORM + SQLite** - ORM and embedded database
+- **JWT** - Authentication
+- **Protocol Libraries**:
+  - `github.com/xrjr/mcutils` - Minecraft protocol
+  - `github.com/rumblefrog/go-a2s` - Source Query protocol
+
+### Frontend
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS v4** - Modern CSS framework
+- **Zustand** - State management
+- **React Router** - Routing
+- **Axios** - HTTP client
+- **Vite** - Build tool
+
+## Project Structure
 
 ```
 game-server-monitor/
-├── main.go                     # 主程序入口
-├── go.mod                      # Go 模块定义
-├── build.sh                    # 生产构建脚本
-├── dev.sh                      # 开发环境脚本
-├── internal/                   # 内部包
-│   ├── models/                 # 数据模型
-│   │   └── server.go
-│   └── database/               # 数据库层
-│       └── database.go
-└── frontend/                   # 前端应用
+├── main.go                     # Main entry point
+├── go.mod                      # Go module definition
+├── build.sh                    # Production build script
+├── dev.sh                      # Development script
+├── internal/                   # Internal packages
+│   ├── models/                 # Data models
+│   ├── database/               # Database layer
+│   ├── handlers/               # HTTP handlers
+│   ├── auth/                   # Authentication
+│   ├── middleware/             # Middleware
+│   ├── prober/                 # Server probing service
+│   └── cache/                  # Caching layer
+└── frontend/                   # Frontend application
     ├── src/
-    │   ├── types/              # TypeScript 类型定义
-    │   ├── App.tsx             # 主应用组件
-    │   └── index.css           # 样式文件 (Tailwind v4)
+    │   ├── components/         # React components
+    │   ├── pages/              # Page components
+    │   ├── stores/             # Zustand stores
+    │   ├── services/           # API services
+    │   └── types/              # TypeScript types
     ├── package.json
-    └── vite.config.ts          # Vite 配置
+    └── vite.config.ts
 ```
 
-## 开发指南
+## Getting Started
 
-### 环境要求
+### Prerequisites
 - Go 1.21+
 - Node.js 18+
-- pnpm (推荐) 或 npm
+- pnpm (recommended) or npm
 
-### 开发环境启动
+### Development Setup
 
-1. **安装依赖**:
+1. **Install dependencies**:
    ```bash
-   # Go 依赖
+   # Go dependencies
    go mod tidy
    
-   # 前端依赖
+   # Frontend dependencies
    cd frontend
    pnpm install
    cd ..
    ```
 
-2. **启动开发环境**:
+2. **Start development environment**:
    ```bash
+   # Using default settings
    ./dev.sh
+   
+   # Or with custom environment variables
+   PORT=3000 JWT_SECRET=my-secret ./dev.sh
    ```
    
-   这将启动：
-   - 前端开发服务器: http://localhost:5173
-   - 后端 API 服务器: http://localhost:8080
+   This will start:
+   - Frontend dev server: http://localhost:5173
+   - Backend API server: http://localhost:8080 (or your custom PORT)
 
-### 生产构建
+### Production Build
 
 ```bash
 ./build.sh
 ```
 
-这将：
-1. 构建前端应用到 `frontend/dist/`
-2. 将前端资源嵌入到 Go 二进制文件中
-3. 生成单一可执行文件 `game-server-monitor`
+This will:
+1. Build frontend to `frontend/dist/`
+2. Embed frontend assets into Go binary
+3. Generate single executable `game-server-monitor`
 
-### 运行生产版本
+### Run Production Build
 
 ```bash
+# Using default settings
+./game-server-monitor
+
+# With custom environment variables
+PORT=8080 JWT_SECRET=your-secret-key GIN_MODE=release ./game-server-monitor
+
+# Or export variables first
+export PORT=8080
+export JWT_SECRET=your-secret-key
+export GIN_MODE=release
 ./game-server-monitor
 ```
 
-## 特性
+The application will be available at http://localhost:8080 (or your custom PORT)
 
-- ✅ 项目结构和依赖设置
-- 🔄 实时服务器状态监控 (待实现)
-- 🔄 多协议支持 (Minecraft Query, Source Query) (待实现)
-- 🔄 管理员后台 (待实现)
-- 🔄 响应式设计 (待实现)
-- 🔄 JWT 认证 (待实现)
-- 🔄 嵌入式部署 (待实现)
+### Deployment
 
-## API 端点
+#### Using Systemd (Linux)
 
-### 公共接口
-- `GET /api/servers` - 获取所有服务器状态
-- `POST /api/auth/login` - 管理员登录
+1. Copy the binary and create necessary directories:
+   ```bash
+   sudo mkdir -p /opt/game-server-monitor
+   sudo cp game-server-monitor /opt/game-server-monitor/
+   ```
 
-### 管理接口 (需要 JWT)
-- `POST /api/admin/servers` - 添加服务器
-- `PUT /api/admin/servers/:id` - 更新服务器
-- `DELETE /api/admin/servers/:id` - 删除服务器
+2. Create systemd service:
+   ```bash
+   sudo cp game-server-monitor.service.example /etc/systemd/system/game-server-monitor.service
+   sudo nano /etc/systemd/system/game-server-monitor.service
+   # Update environment variables in the service file
+   ```
 
-## 许可证
+3. Enable and start the service:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable game-server-monitor
+   sudo systemctl start game-server-monitor
+   sudo systemctl status game-server-monitor
+   ```
 
-MIT License
+#### Using Docker (Coming Soon)
+
+Docker support is planned for future releases.
+
+## Default Credentials
+
+**Username**: `admin`  
+**Password**: `admin123`
+
+⚠️ **Important**: Change the default password immediately after first login!
+
+## Usage
+
+### Adding Servers
+
+1. Log in to the admin panel
+2. Click "添加新服务器" (Add New Server)
+3. Fill in server details:
+   - Server name
+   - Game type (Minecraft or CS2)
+   - Server address and port
+   - Description (supports Markdown)
+4. Click "保存" (Save)
+
+### Monitoring Servers
+
+- View all servers on the homepage
+- Real-time status updates (online/offline)
+- Player count and server capacity
+- Response latency
+- Click "查看详情" (View Details) for more information
+
+### Managing Servers
+
+- Edit server information
+- Delete servers
+- Change admin password
+- View server statistics
+
+## API Endpoints
+
+### Public Endpoints
+- `GET /api/servers` - Get all servers with status
+- `GET /api/servers/:id` - Get specific server details
+- `POST /api/auth/login` - Admin login
+
+### Protected Endpoints (Require JWT)
+- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/change-password` - Change password
+- `POST /api/auth/validate` - Validate token
+
+### Admin Endpoints (Require JWT)
+- `GET /api/admin/servers` - Get all servers (admin view)
+- `POST /api/admin/servers` - Create new server
+- `PUT /api/admin/servers/:id` - Update server
+- `DELETE /api/admin/servers/:id` - Delete server
+- `POST /api/admin/users` - Create user
+- `GET /api/admin/users` - List users
+- `DELETE /api/admin/users/:id` - Delete user
+- `POST /api/admin/users/:id/reset-password` - Reset user password
+
+## Configuration
+
+### Environment Variables
+
+The application can be configured using environment variables. Set them directly when running the application:
+
+```bash
+# Set environment variables and run
+PORT=8080 JWT_SECRET=your-secret-key ./game-server-monitor
+
+# Or export them first
+export PORT=8080
+export JWT_SECRET=your-secret-key
+./game-server-monitor
+```
+
+Available environment variables:
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `PORT` | HTTP server port | `8080` | No |
+| `JWT_SECRET` | Secret key for JWT token signing | `bWHnEE0TtwPZvbspvsfb` | **Yes (Production)** |
+| `GIN_MODE` | Gin framework mode (`debug` or `release`) | `debug` | No |
+
+**⚠️ Security Warning**: Always change `JWT_SECRET` in production! Use a strong, random string.
+
+Generate a secure JWT secret:
+```bash
+# Using openssl
+openssl rand -base64 32
+
+# Using Go
+go run -c 'package main; import ("crypto/rand"; "encoding/base64"; "fmt"); func main() { b := make([]byte, 32); rand.Read(b); fmt.Println(base64.StdEncoding.EncodeToString(b)) }'
+```
+
+### Server Probing
+
+The application automatically probes servers every 30 seconds. This can be configured in `internal/prober/prober.go`.
+
+### Rate Limiting
+
+API endpoints are rate-limited to 20 requests per 10 seconds per IP address. Configure in `main.go`.
+
+### JWT Token
+
+JWT tokens expire after 24 hours. Configure in `internal/auth/jwt.go`.
+
+## Development
+
+### Running Tests
+
+```bash
+# Backend tests
+go test ./...
+
+# Frontend tests
+cd frontend
+pnpm test
+```
+
+### Code Structure
+
+- **Handlers**: HTTP request handlers in `internal/handlers/`
+- **Models**: Data models in `internal/models/`
+- **Database**: Database operations in `internal/database/`
+- **Prober**: Server probing logic in `internal/prober/`
+- **Auth**: Authentication and JWT in `internal/auth/`
+- **Frontend**: React application in `frontend/src/`
+
+## Troubleshooting
+
+### Server Not Responding
+
+- Check if the server address and port are correct
+- Ensure the server has query protocol enabled
+- Check firewall settings
+
+### Login Issues
+
+- Verify credentials
+- Check if JWT token has expired
+- Clear browser cache and try again
+
+### Build Issues
+
+- Ensure all dependencies are installed
+- Check Go and Node.js versions
+- Run `go mod tidy` and `pnpm install`
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+AGPL-3.0 is a strong copyleft license that ensures:
+
+- ✅ You can freely use, modify, and distribute this software
+- ✅ You can use this software for commercial purposes
+- ⚠️ If you modify this software and provide it as a network service, you must disclose your source code
+- ⚠️ Any derivative works must also be licensed under AGPL-3.0
+- ⚠️ You must retain the original copyright and license notices
+
+See the [LICENSE](LICENSE) file for full details.
+
+## Support
+
+For issues and questions, please open an issue on GitHub.

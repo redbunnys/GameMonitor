@@ -1,0 +1,28 @@
+[Unit]
+Description=Game Server Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/game-server-monitor
+ExecStart=/opt/game-server-monitor/game-server-monitor
+
+# Environment variables
+Environment="PORT=8080"
+Environment="JWT_SECRET=your-secret-key-here-change-this"
+Environment="GIN_MODE=release"
+
+# Restart policy
+Restart=always
+RestartSec=5
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/game-server-monitor
+
+[Install]
+WantedBy=multi-user.target

@@ -29,4 +29,10 @@ echo "🔨 构建 Go 应用..."
 go build -o game-server-monitor main.go
 
 echo "✅ 构建完成！"
-echo "🚀 运行: ./game-server-monitor"
+echo ""
+echo "🚀 运行应用:"
+echo "   # 使用默认配置"
+echo "   ./game-server-monitor"
+echo ""
+echo "   # 使用自定义环境变量"
+echo "   PORT=8080 JWT_SECRET=your-secret ./game-server-monitor"

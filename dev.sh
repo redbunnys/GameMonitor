@@ -20,7 +20,10 @@ BACKEND_PID=$!
 
 echo "✅ 开发环境已启动！"
 echo "前端: http://localhost:5173"
-echo "后端: http://localhost:8080"
+echo "后端: http://localhost:${PORT:-8080}"
+echo ""
+echo "💡 提示: 使用环境变量自定义配置"
+echo "   例如: PORT=3000 JWT_SECRET=my-secret ./dev.sh"
 echo ""
 echo "按 Ctrl+C 停止所有服务..."
 

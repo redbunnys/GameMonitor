@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -16,6 +17,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+/*
+ * Copyright (c) 2026 游戏服务器监控面板開發團隊
+ * * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ */
 
 //go:embed frontend/dist/*
 var frontendFS embed.FS
@@ -42,9 +56,16 @@ func main() {
 	// Setup routes
 	setupRoutes(r, proberService)
 
+	// Get port from environment or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	// Start server
-	log.Println("🚀 Starting game server monitor on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	addr := ":" + port
+	log.Printf("🚀 Starting game server monitor on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, r))
 }
 
 func setupRoutes(r *gin.Engine, proberService *prober.ProberService) {

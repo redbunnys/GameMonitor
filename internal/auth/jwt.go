@@ -32,7 +32,7 @@ func NewJWTService() *JWTService {
 	// Get secret key from environment or use default for development
 	secretKey := os.Getenv("JWT_SECRET")
 	if secretKey == "" {
-		secretKey = "game-server-monitor-secret-key-change-in-production"
+		secretKey = "bWHnEE0TtwPZvbspvsfb"
 	}
 
 	return &JWTService{
